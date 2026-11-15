@@ -28,6 +28,8 @@ your own Codex account without relying on the previous owner or an old chat.
    the old key. Never put a key in chat or the saved website files.
 5. [ ] Turn on two-step login for Hostinger, GitHub, ChatGPT, Anthropic, and your
    email wherever available. Keep your own recovery codes and payment details.
+   Sign out old devices, replace shared passwords, and confirm recovery details
+   belong to you; removing a collaborator does not end an existing account login.
 6. [ ] **Make the GitHub project private last.** Confirm Hostinger is authorized
    to read the private project, then repeat the publishing test. The public
    website and downloads will remain public.

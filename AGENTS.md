@@ -187,6 +187,9 @@ to your GitHub account and replacement of the previous owner's Anthropic key are
 still outstanding at preparation. Reauthorize publishing under the owner's own
 account, prove it works, remove previous access, enable two-step login, and make
 the repository private last. Verify another publication after making it private.
+Account sharing may have included signed-in devices: guide the owner through
+ending old sessions, rotating shared passwords, and checking recovery details.
+Do not mistake collaborator removal for revocation of all account access.
 
 The requested visual audit is unfinished and explicitly outside this handoff.
 Earlier reports about the first-page image, background pattern, and visible skip

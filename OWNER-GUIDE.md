@@ -23,6 +23,13 @@ Keep passwords and recovery codes in your own password manager. Turn on two-step
 login everywhere it is available. Do not send passwords or secret keys to Codex,
 email them, or include them in screenshots.
 
+If someone else has signed in using your account, removing them as a collaborator
+is not enough. After you have confirmed your own access, use each account's
+security settings to sign out old devices and replace any shared passwords.
+Check that recovery email addresses and phone numbers are yours. Keep a working
+recovery method throughout. Ask your assistant to help review any old publishing
+permissions without removing the connection that now belongs to you.
+
 ## One-Time Setup
 
 1. Accept the website transfer into your GitHub account. Check that the website's
