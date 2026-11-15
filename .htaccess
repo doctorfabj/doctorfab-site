@@ -3,6 +3,8 @@ DirectoryIndex index.html
 
 # Never serve local secrets or runtime rate-limit files.
 RewriteRule ^storage(/|$) - [F,L]
+# Keep internal guide and notes files (.md) out of public view.
+RewriteRule \.md$ - [F,L,NC]
 
 <FilesMatch "^(config|config\.local|doctorfab-companion-config|.*\.secret)\.php$">
   <IfModule mod_authz_core.c>

@@ -1,100 +1,151 @@
-# Doctor Fab Nautical Website
+# Doctor Fab: Hosting and Publishing
 
-This folder contains a complete one-page nautical website for Doctor Fab.
+Owner instructions are in [OWNER-GUIDE.md](OWNER-GUIDE.md). Assistants must first
+read [AGENTS.md](AGENTS.md); takeover steps are in
+[START-HERE-DR-FAB.md](START-HERE-DR-FAB.md).
 
-## Files
+## Existing Architecture
 
-- `index.html`: full website markup
-- `styles.css`: full visual design
-- `companion.js`: vanilla JavaScript for the Reflection & Grounding Companion
-- `api/companion.php`: PHP endpoint that calls Anthropic server-side
-- `api/companion-system-prompt.md`: editable clinical voice and safety prompt
-- `config.example.php`: safe template for the private Anthropic API config
-- `assets/`: approved AI-generated Doctor Fab photos/boards for the site
-- `HOSTINGER-COPY.md`: copy/paste content for Hostinger Website Builder
+The site at https://doctorfab.org/ uses static HTML, CSS, vanilla JavaScript, PDFs,
+images, and audio. Hostinger runs `api/companion.php` for server-side Anthropic
+requests. There is no build step or database. This is a custom-code website,
+not the separate Hostinger Website Builder project. `HOSTINGER-COPY.md` is a
+historical copy kit, not a current deployment procedure.
 
-## GitHub to Hostinger Route
+The repository root publishes into `public_html`. `main` is the live branch:
+**a push to `main` triggers a live Hostinger deployment**. Do not upload a ZIP,
+replace the website, or create another repository for routine updates.
 
-Hostinger's GitHub deployment works for custom HTML/PHP sites on web or cloud hosting. It does not deploy directly into a Hostinger Website Builder project, so this site should be treated as a custom static site.
+## Deployment and Ownership Transfer
 
-1. Create a GitHub repository, for example `doctorfab-site`.
-2. Push this folder's contents to the repository root. `index.html` must be at the top level.
-3. In Hostinger hPanel, open the website dashboard.
-4. Go to `Advanced` -> `Git`.
-5. Click `Continue with GitHub` and authorize Hostinger.
-6. Choose the repository and the `main` branch.
-7. Use the default root directory / `public_html`.
-8. Deploy.
+1. Use the existing website repository in your GitHub account. Inspect status
+   and the actual remote before starting; do not rely on an old account URL.
+2. In Hostinger's doctorfab.org dashboard, inspect its Git connection (commonly
+   under Advanced / Git). Keep the repository root, `main`, and the existing
+   `public_html` destination. Reauthorize under the owner's own GitHub login after
+   transfer if needed. Preserve the private configuration above `public_html`.
+3. For each approved change, preview and test, review the diff, stage only intended
+   files, and commit. Run `git status --short --branch` before every push. Stop
+   on unexpected changes or a rejected push. Never force-push or reset history.
+4. Push only after approval to publish this scope. Verify Hostinger's deployment
+   result and the changed live files, not just GitHub's success message.
+5. After transfer, prove a documentation-only deployment works using the owner's
+   connection. Remove previous collaborators and stale access only after the new
+   connection works. Enable two-step login and replace the Anthropic key.
+6. Make the repository private last. Ensure Hostinger has access to the private
+   repository and prove another approved deployment succeeds afterward.
 
-Important: deploying to `public_html` can overwrite the existing site files. Keep a backup or only do this once you are ready to replace the current builder version.
+For current dashboard instructions, consult
+[Hostinger's Git publishing guide](https://www.hostinger.com/support/1583302-how-to-deploy-a-git-repository-in-hostinger/).
+Do not change DNS, SSL, or CDN as part of an ordinary deployment. The apex domain
+is canonical, `www` redirects to it, and the CDN was intentionally left off.
 
-## Reflection & Grounding Companion Setup
+## Local Preview
 
-The companion uses a single PHP endpoint so the Anthropic API key is never placed in HTML, CSS, or JavaScript. The repo includes only `config.example.php`; the real key must be added on Hostinger after deployment.
+From the project root:
 
-### Preferred key location
-
-1. In Hostinger File Manager, open the folder one level above `public_html`.
-2. Create a file named `doctorfab-companion-config.php`.
-3. Copy the contents of `public_html/config.example.php` into that new file.
-4. Replace `PASTE_YOUR_ANTHROPIC_API_KEY_HERE` with the real Anthropic API key.
-5. Replace `CHANGE_THIS_TO_A_LONG_RANDOM_STRING` with a long random phrase.
-6. Save the file.
-
-The endpoint looks for this file first:
-
-```php
-../doctorfab-companion-config.php
+```sh
+python3 -m http.server 8765 --bind 127.0.0.1
 ```
 
-Keeping it above `public_html` is the cleanest option because the file is not web-accessible.
+Open http://127.0.0.1:8765/index.html. The Mac helper
+`scripts/start-local-preview.command` does the same. Choose an unused port and
+stop the process when finished. This only tests static content: it does not run
+PHP or enforce `.htaccess`, and can expose PHP source. Never put private keys in
+this preview folder or bind the server publicly. A built-in PHP preview server
+does not test Apache/LiteSpeed rewrite rules either.
 
-### Fallback key location
+## Private Companion Configuration
 
-If Hostinger does not allow a file above `public_html`:
+The intended production layout is:
 
-1. In `public_html`, copy `config.example.php`.
-2. Rename the copy to `config.php`.
-3. Paste the real Anthropic API key into `config.php`.
-4. Replace the rate-limit salt with a long random phrase.
-
-`config.php` is listed in `.gitignore`, and `.htaccess` denies direct web access to it. Never commit `config.php`.
-
-### Model and cost controls
-
-The model string currently used is:
-
-```php
-claude-haiku-4-5-20251001
+```text
+website account folder/
+    doctorfab-companion-config.php    PRIVATE: key, model, rate-limit salt
+    public_html/
+        config.example.php           placeholders only
+        api/companion.php
+        api/companion-system-prompt.md
+        storage/.htaccess
 ```
 
-Change it in the private config file under `anthropic_model`.
+In Hostinger File Manager, go one level above `public_html` and open
+`doctorfab-companion-config.php`. The owner pastes her key directly into the
+quoted `anthropic_api_key` value there, never into chat. For a key replacement,
+preserve all other values, quotes, and punctuation. If the file is missing, stop
+and ask; do not create a competing configuration.
 
-The endpoint also caps message length, caps total conversation length, rate-limits by hashed IP/session, and stores only timestamps for rate limiting. It does not log or store what visitors type. PHP cURL must be enabled on Hostinger for the endpoint to call Anthropic.
+For an explicitly approved fresh recovery setup only, copy the placeholder
+structure from `config.example.php` into that private file, enter the key there,
+and set a new long random `rate_limit_salt`. Keep backups containing secrets outside
+the public root and repository. PHP cURL and outbound HTTPS must be available.
 
-### Safety behavior
+`load_config()` in `api/companion.php` checks the private sibling file first, then
+the legacy fallback `public_html/config.php`. Both real filenames are ignored by
+Git; `.htaccess` denies direct access to sensitive PHP filenames in the public
+root. Do not create both configurations or put a real key in `config.example.php`.
 
-The companion is a support-between-sessions reflection tool, not therapy or crisis care. The UI states this near the tool. The PHP endpoint and frontend both check for crisis language; when detected, the exercise pauses and the visitor sees emergency guidance, including call/text 988 in the United States.
+`anthropic_model` in the private file selects the active model. The documented
+model and code/template fallback are `claude-haiku-4-5-20251001`. The private value
+overrides the fallback. For retirement or account-availability issues, follow the
+approval, compatibility, pricing, and testing steps in [AGENTS.md](AGENTS.md).
+Do not assume a key replacement requires a model change.
 
-## Easiest Hostinger Builder Route
+Create keys in [Claude Console](https://platform.claude.com/) and set a low
+[account spending limit](https://platform.claude.com/settings/spend-limits).
+After the new key is verified, the previous key's owner must revoke it. Request
+limits in this application are not a guaranteed account-wide billing cap.
 
-1. In Hostinger, replace the current meditation image with the approved AI-generated Doctor Fab images, starting with `assets/doctorfab-ai-board-wide.png` or `assets/ai3-pink-portrait.jpg`.
-2. Use the text in `HOSTINGER-COPY.md` section by section.
-3. Set the palette to deep navy, soft shell white, warm cream, dune beige, sea-glass blue, and dusty pink.
-4. Remove the duplicate `About` navigation item.
-5. Check the mobile view with the phone icon and use Auto-fix layout if needed.
-6. Add the `Work With Dr. Fab` section before Resources so the page has clear money-making paths.
-7. Only click `Update website` when you are ready for the changes to go live.
+## Safety and Data Boundaries
 
-Hostinger supports custom code through an Embed Code element, but for a full site this file-upload route is cleaner than stuffing the whole page into one embed.
+The editable prompt is `api/companion-system-prompt.md`. Preserve the non-therapy,
+non-diagnostic role, choice to pause or stop, and crisis routing to real human
+help. Frontend and server checks can return a fixed crisis response without an
+Anthropic call. They are safeguards, not a complete clinical safety validation.
 
-## Static Upload Route
+Current limits: 30,000 request bytes, last 8 messages, 900 characters per message,
+5,000 total characters, 10 requests per 600 seconds and 40 per rolling day for
+the combined IP/session hash. Only rate-limit hashes and timestamps are stored
+by the application in `storage/companion-rate-limit.json`; message text is sent
+to Anthropic but not intentionally logged or saved by the application. Do not
+claim provider zero retention or compliance without separate verification.
 
-If you want to use this as a code site instead of Hostinger's visual builder:
+`companion.js` can offer a local prewritten exercise if the API fails. Seeing a
+helpful paragraph alone does not prove the AI connection works; inspect a real
+successful POST response containing `reply` and the owner's Anthropic usage.
 
-1. Zip the contents of this folder, not the folder itself.
-2. Upload the zip to Hostinger File Manager.
-3. Extract into the site's web root, usually `public_html`.
-4. Make sure `index.html`, `styles.css`, and the `assets` folder sit together.
+## Internal Markdown Protection
 
-Before replacing a live site, download or back up the current Hostinger version.
+Immediately after the storage rule, the root `.htaccess` contains:
+
+```apache
+# Keep internal guide and notes files (.md) out of public view.
+RewriteRule \.md$ - [F,L,NC]
+```
+
+This denies web requests for all `.md` paths, including nested prompt files.
+PHP can still read the prompt from disk. The files remain readable in your GitHub
+account until the repository is made private; website blocking is not repository
+privacy. It also does not protect HTML, PDFs, images, or unlisted audio pages.
+
+## Verification After Publishing
+
+- Confirm the homepage, coaching, Sanctuary, Resources, Lexicon, article pages,
+  and audio page still return HTTP 200. Check linked CSS/JS and PDF downloads.
+- Confirm `/AGENTS.md`, `/OWNER-GUIDE.md`, `/START-HERE-DR-FAB.md`,
+  `/README-HOSTINGER.md`, `/HOSTINGER-COPY.md`, and
+  `/api/companion-system-prompt.md` return HTTP 403, not their contents. Test both
+  an ordinary path and a query-string variant; check HTTP/`www` behavior too.
+- Send a harmless synthetic grounding request to `/api/companion.php` using POST
+  with a JSON `messages` array of `{role: "user", content: "..."}`. Expect HTTP
+  200 with a nonempty `reply`, not an error or local fallback. Never use client
+  records, private conversation text, or a key in the test request.
+- Send a synthetic crisis example and confirm `crisis: true`, a pause in the
+  exercise, and the existing 988/emergency guidance. Never remove this behavior.
+- For a key change, confirm the new owner's Anthropic usage reflects the test.
+- Check for unexpected changes before any follow-up push. If verification fails,
+  stop and explain the evidence. Propose a narrow repair or a reviewed revert;
+  do not weaken access rules or safety checks to hide the failure.
+
+The ownership handoff leaves the separate visual audit unfinished. Consult the
+owner guide for pending transfer, access, key, and business decisions.
